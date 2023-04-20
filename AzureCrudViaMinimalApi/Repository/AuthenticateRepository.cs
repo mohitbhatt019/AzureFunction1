@@ -105,12 +105,7 @@ namespace crudWithAzure.Data
             return GetAllData;
         }
 
-        public async Task<UserCredentials> GetLoginEntityAsync(string username, string password)
-        {
-            var tableClient = await GetTableClient();
-            var data = await tableClient.GetEntityAsync<UserCredentials>(username, password);
-            return data;
-        }
+       
 
         //public async Task<ICollection<User>> GetAllEntityAsync()
         //{

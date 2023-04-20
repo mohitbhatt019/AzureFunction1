@@ -5,6 +5,8 @@ using AzureCrudViaMinimalApi.Hub;
 using AzureCrudViaMinimalApi.Repository.IRepository;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Azure.Documents;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
 using System.ComponentModel;
 
 namespace AzureCrudViaMinimalApi.Repository
@@ -39,7 +41,7 @@ namespace AzureCrudViaMinimalApi.Repository
         public async Task<bool> DeleteEntityAsync(string name, string extension, string partitionKey, string rowKey)
         {
             var tableClient = await GetTableClient();
-            var removeData = tableClient.DeleteEntity(name, partitionKey);
+            var removeData = tableClient.DeleteEntity(rowKey, partitionKey);
             if (removeData.Status == 204)
             {
                 var container = BlobExtensions.GetContainer(_connectionString, _container);
@@ -97,15 +99,53 @@ namespace AzureCrudViaMinimalApi.Repository
         public async Task<FileDataInfo> UpsertEntityAsync(FileDataInfo entity)
         {
             var tableClient = await GetTableClient();
-            await tableClient.UpsertEntityAsync(entity);
-            var getData = await GetAllEntityForSpecificUser(entity.UserId);
-            // SignalR
-            await messageHub.Clients.All.SendOffersToUser(getData);
-            return entity;
+            //await tableClient.UpsertEntityAsync(entity);
+            //var getData = await GetAllEntityForSpecificUser(entity.UserId);
+            //// SignalR
+            //await messageHub.Clients.All.SendOffersToUser(getData);
+            //return entity;
+            try
+            {
+               var updatedData= await tableClient.UpsertEntityAsync(entity);
+                var getData = await GetAllEntityForSpecificUser(entity.UserId);
+                // SignalR
+                var objNotifHub = new MessageHub();
+
+                await objNotifHub.SendUpdatedDataViaSignalR(getData, messageHub);
+                if (updatedData.Status == 204)
+                {
+                    //Blob 
+                    CloudStorageAccount storageAccount = CloudStorageAccount.Parse(_connectionString);
+                    CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+
+                    CloudBlobContainer container = blobClient.GetContainerReference(_container);
+                    CloudBlockBlob sourceBlob = container.GetBlockBlobReference(entity.PartitionKey + "." + entity.Extension);
+
+                    CloudBlockBlob newBlob = container.GetBlockBlobReference(entity.Name + "." + entity.Extension);
+                    await newBlob.StartCopyAsync(sourceBlob);
+
+                    while (newBlob.CopyState.Status == CopyStatus.Pending)
+                    {
+                        await Task.Delay(1000);
+                        await newBlob.FetchAttributesAsync();
+                    }
+                    await sourceBlob.DeleteIfExistsAsync();
+                    //***********************************
+                   
+                    return entity;
+                }
+                else return null;
+               
+
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
         }
 
        
-
         //public async Task<FileDataInfo> UpsertEntityAsync(FileDataInfo entity)
         //{
         //    var tableClient = await GetTableClient();
@@ -126,7 +166,7 @@ namespace AzureCrudViaMinimalApi.Repository
         //}
 
 
-       
+
 
 
         public async Task<ICollection<FileDataInfo>> GetAllEntityForSpecificUser(int id)
@@ -145,5 +185,39 @@ namespace AzureCrudViaMinimalApi.Repository
             return getAllData;
         }
 
+        public async Task<FileDataInfo> CreateEntityAsync(FileDataInfo entity)
+        {
+            entity.PartitionKey = entity.Name;
+                string Id = Guid.NewGuid().ToString();
+                entity.Id = Id;
+                entity.RowKey = Id;
+            var tableClient = await GetTableClient();
+            //await tableClient.UpsertEntityAsync(entity);
+            //var getData = await GetAllEntityForSpecificUser(entity.UserId);
+            //// SignalR
+            //await messageHub.Clients.All.SendOffersToUser(getData);
+            //return entity;
+            try
+            {
+                await tableClient.AddEntityAsync(entity);
+
+                var getData = await GetAllEntityForSpecificUser(entity.UserId);
+                // SignalR
+                var objNotifHub = new MessageHub();
+
+                await objNotifHub.SendUpdatedDataViaSignalR(getData, messageHub);
+                return entity;
+
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+        }
     }
+ 
+
+
+
 }

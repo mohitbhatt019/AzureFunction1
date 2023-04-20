@@ -5,7 +5,6 @@ D:\Azure\FileUpload\AzureCrudViaMinimalApi\bin\Debug\net6.0\AzureCrudViaMinimalA
 D:\Azure\FileUpload\AzureCrudViaMinimalApi\bin\Debug\net6.0\AzureCrudViaMinimalApi.runtimeconfig.json
 D:\Azure\FileUpload\AzureCrudViaMinimalApi\bin\Debug\net6.0\AzureCrudViaMinimalApi.dll
 D:\Azure\FileUpload\AzureCrudViaMinimalApi\bin\Debug\net6.0\AzureCrudViaMinimalApi.pdb
-<<<<<<< HEAD
 D:\Azure\FileUpload\AzureCrudViaMinimalApi\bin\Debug\net6.0\Azure.Core.dll
 D:\Azure\FileUpload\AzureCrudViaMinimalApi\bin\Debug\net6.0\Azure.Data.Tables.dll
 D:\Azure\FileUpload\AzureCrudViaMinimalApi\bin\Debug\net6.0\Azure.Storage.Blobs.dll
@@ -27,8 +26,6 @@ D:\Azure\FileUpload\AzureCrudViaMinimalApi\bin\Debug\net6.0\System.Net.WebSocket
 D:\Azure\FileUpload\AzureCrudViaMinimalApi\bin\Debug\net6.0\Microsoft.WindowsAzure.Storage.dll
 D:\Azure\FileUpload\AzureCrudViaMinimalApi\bin\Debug\net6.0\runtimes\win7-x64\native\Cosmos.CRTCompat.dll
 D:\Azure\FileUpload\AzureCrudViaMinimalApi\bin\Debug\net6.0\runtimes\win7-x64\native\Microsoft.Azure.Documents.ServiceInterop.dll
-=======
->>>>>>> 8b550b835ce8d8dbe12180008fb5a687a3f7de5a
 D:\Azure\FileUpload\AzureCrudViaMinimalApi\obj\Debug\net6.0\AzureCrudViaMinimalApi.csproj.AssemblyReference.cache
 D:\Azure\FileUpload\AzureCrudViaMinimalApi\obj\Debug\net6.0\AzureCrudViaMinimalApi.GeneratedMSBuildEditorConfig.editorconfig
 D:\Azure\FileUpload\AzureCrudViaMinimalApi\obj\Debug\net6.0\AzureCrudViaMinimalApi.AssemblyInfoInputs.cache

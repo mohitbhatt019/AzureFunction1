@@ -5,273 +5,247 @@ import * as signalR from "@microsoft/signalr";
 
 import { createGlobalStyle } from "styled-components";
 function Home() {
-  const [selectedFile, setSelectedFile] = useState(0);
   const [file, setFile] = useState("");
-
-
-
   const [dataList, setDataList] = useState([]);
-  const[employeeForm,setEmployeeForm]=useState({});
-  const location=useLocation();
+  const [employeeForm, setEmployeeForm] = useState({});
   const [hubConnection, setHubConnection] = useState(null);
-  // const [fileName, setFileName] = useState("");
-  const [data, setData] = useState([]);
-  // useEffect(() => {
-  //   getAll();
-  //   debugger
-  //   const connection = new signalR.HubConnectionBuilder().withUrl("https://localhost:7180/getDataSignalR",{
-  //     skipNegotiation: true,
-  //     transport: signalR.HttpTransportType.WebSockets
-  //   }).build()
-
-  //   connection.start().then(() => {
-  //     console.log("SignalR Hub Connection started successfully!");
-  //   }).catch((error) => {
-  //     console.log(`SignalR Hub Connection error: ${error}`);
-  //   });
-
-  //   connection.on("SendUpdatedDataToUser", (connection) => {
-  //     debugger
-  //     setData(connection);
 
 
-  //   });
 
-  // // cleanup function to close the connection when the component unmounts
-  // return () => {
-  //   connection.stop();
-  //   setHubConnection(connection);
+  // Initialize the component and establish a SignalR connection
+useEffect(() => {
+  // Start a debugger to pause the code and allow for debugging
+  debugger;
 
-  // };
-  // },[]);
+  // Retrieve the current user from localStorage
+  let userData = localStorage.getItem("curruntUser");
 
-  useEffect(()=>{
-
-    //debugger
-    // const userData = JSON.parse(localStorage.getItem("curruntUser"));
-    // {userData.data.userName=="admin"?(getAll()):(gettSpecific())}
-    // alert(userData.data.userName)
-   gettSpecific()
-
-    const connection = new signalR.HubConnectionBuilder().withUrl("https://localhost:7180/getDataSignalR",{
-       skipNegotiation: true,
-       transport: signalR.HttpTransportType.WebSockets
-     }).build()
-    connection
-      .start()
-      .then(() => {
-        console.log("connection established ");
-      })
-      .catch(() => {
-        console.log("connection not established");
-      });
-    connection.on("SendOffersToUser", (connection) => {
-
-      setDataList(connection);
-
-      setHubConnection(connection);
-    });
-
-    // cleanup function to close the connection when the component unmounts
-    return () => {
-      connection.stop();
-    }
-  },[])
-
-
-  function updateClick(){
-    debugger
-    console.log(employeeForm)
-    axios.put(`https://localhost:7180/updateentityasync`,employeeForm).then((d)=>{
-      if(d){
-
-           //hubConnection.invoke("updateentityasync", employeeForm);
-           console.log(d.data)
-        alert("Updated successfully");
-      }
-      else{
-        alert("Not Updated")
-      }
-    }).catch((error)=>{
-      console.log(error)
-      alert("Something  wrongg")
-    })
-
+  // Use a ternary operator to decide whether to get all data or just specific data based on the user
+  {
+    userData == "admin" ? getAll() : gettSpecific();
   }
 
+  // Create a new SignalR connection and specify the URL, transport protocol, and options
+  const connection = new signalR.HubConnectionBuilder()
+    .withUrl("https://localhost:7180/getDataSignalR", {
+      skipNegotiation: true,
+      transport: signalR.HttpTransportType.WebSockets,
+    })
+    .build();
 
-
-
-  const handleFileChange = (e) => {
-    console.log(e.target.files);
-    setFile(e.target.files[0]);
-  };
-
-
-  const changeHandler = (event) => {
-    setEmployeeForm({
-      ...employeeForm,
-      [event.target.name]: event.target.value,
+  // Start the SignalR connection and invoke a method to get the user ID
+  connection
+    .start()
+    .then(() => {
+      var id = localStorage.getItem("userId");
+      connection.invoke("GetUserId", id);
+      console.log("connection established ");
+    })
+    .catch(() => {
+      console.log("connection not established");
     });
+
+  // Define a method to handle updated data received via SignalR and update the state
+  connection.on("SendUpdatedDataViaSignalR", (connection) => {
+    setDataList(connection);
+    setHubConnection(connection);
+  });
+
+  // Define a cleanup function to close the SignalR connection when the component unmounts
+  return () => {
+    connection.stop();
+  };
+}, []);
+
+
+
+
+  // Function to handle the update button click
+function updateClick() {
+  // Start a debugger to pause the code and allow for debugging
+  debugger;
+
+  // Log the employee form data to the console
+  console.log(employeeForm);
+
+  // Make a PUT request to update the entity with the employee form data
+  axios
+    .put(`https://localhost:7180/updateentityasync`, employeeForm)
+    .then((d) => {
+      if (d.data) {
+        //hubConnection.invoke("updateentityasync", employeeForm);
+        console.log(d.data.data);
+       // alert("Updated successfully");
+      } else {
+        alert("Not Updated");
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+      //alert("Something wrong");
+    });
+}
+
+
+
+// Function to handle the file input change
+const handleFileChange = (e) => {
+  // Log the selected file to the console
+  console.log(e.target.files);
+
+  // Set the file state to the selected file
+  setFile(e.target.files[0]);
+};
+
+// Function to handle form input changes
+const changeHandler = (event) => {
+  // Update the employee form data with the new input value
+  setEmployeeForm({
+    ...employeeForm,
+    [event.target.name]: event.target.value,
+  });
+};
+
+
+
+// Function to handle the file upload button click
+const uploadClick = () => {
+  // Get the user ID from localStorage
+  const userData = localStorage.getItem("userId");
+
+  // Create a header with the user ID
+  const header = {
+    userId: userData.toString(),
   };
 
+  // Create a new FormData object and append the selected file to it
+  const formData = new FormData();
+  formData.append("file", file);
 
-
-  const uploadClick = () => {
-    debugger
-    const userData = localStorage.getItem("userId");
-    const header = {
-      userId: userData.toString(),
-    };
-    const formData = new FormData();
-    formData.append("file", file);
-
-    axios.post("http://localhost:7202/api/FileUplode", formData, {
+  // Make a POST request to upload the file with the header and form data
+  axios
+    .post("http://localhost:7202/api/FileUplode", formData, {
       headers: header,
     })
-      .then((response) => {
-        if(response){
-          alert("File save succesfully")
-          //getAll();
-        }
+    .then((response) => {
+      if (response) {
+        alert("File saved successfully");
+        //getAll();
+      } else {
+        alert("File not saved successfully");
+      }
+      console.log(response);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+};
 
-else{
-  alert("File not save succesfully")
 
+
+  // Function to retrieve all data from the server
+function getAll() {
+  //debugger;
+
+  // Get the current user from localStorage
+  let usr = localStorage.getItem("curruntUser");
+
+  // Send a GET request to the server to retrieve all data
+  axios
+    .get(`https://localhost:7180/getAll`)
+    .then((response) => {
+      // If the server responds with data, update the state with the retrieved data
+      if (response) {
+        setDataList(response.data);
+        console.log(response.data);
+      } else {
+        // If the server responds with an error, display an alert
+        alert("data not recieved");
+      }
+    })
+    .catch((error) => {
+      // If there's an error, display an alert with the error message
+      alert(error);
+    });
 }
-        console.log(response);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  }
 
 
 
-  function getAll () {
+  // Function to retrieve data for a specific user from the server
+function gettSpecific() {
+  //debugger
 
-    debugger;
-    let usr = localStorage.getItem("curruntUser");
+  // Get the user ID from localStorage
+  let id = localStorage.getItem("userId");
 
-
-    axios
-      .get(`https://localhost:7180/getAll`)
-
-      .then((response) => {
-
-        if (response) {
-          setDataList(response.data);
-          console.log(response.data);
-        } else {
-          alert("data not recieved");
-        }
-      })
-      .catch((error) => {
-        alert(error);
-      });
-  };
-
-  // let usr = localStorage.getItem("curruntUser");
-
-
-
-  // useEffect(() => {
-  //   getAll();
-
-  //   const connection = new signalR.HubConnectionBuilder()
-  //     .withUrl("https://localhost:7180/getDataSignal")
-  //     .build();
-
-  //   connection.start().then(() => {
-  //     setHubConnection(connection);
-  //     let usr = localStorage.getItem("curruntUser");
-  //     {usr=="admin"?(getAll()):(gettSpecific())}
-  //   }).catch((error) => {
-  //     console.error(error);
-  //   });
-  // }, []);
-
-  // function updateClick(){
-  //   debugger
-  //   console.log(employeeForm)
-  //   axios.put(`https://localhost:7180/updateentityasync`,employeeForm).then((d)=>{
-  //     if(d){
-  //       if (hubConnection) {
-  //         hubConnection.invoke("getDataSignal", employeeForm);
-  //         alert("Updated successfully");
-  //       } else {
-  //         alert("Hub connection is null or undefined");
-  //       }
-  //     }
-  //     else{
-  //       alert("Not Updated")
-  //     }
-  //   }).catch((error)=>{
-  //     alert("Something went wrong")
-  //   })
-  // }
+  // Send a GET request to the server to retrieve data for the specific user
+  axios
+    .get(`https://localhost:7180/GetAllEntityForSpecificUser/${id}`)
+    .then((response) => {
+      // If the server responds with data, update the state with the retrieved data
+      if (response) {
+        setDataList(response.data);
+        console.log(response.data);
+      } else {
+        // If the server responds with an error, display an alert
+        alert("data not recieved");
+      }
+    })
+    .catch((error) => {
+      // If there's an error, display an alert with the error message
+      alert(error);
+    });
+}
 
 
+ // Function to download an image from the server
+function ImageDownload(name, extension) {
+  //debugger;
 
-  function gettSpecific(){
-    debugger
-    let id =localStorage.getItem("userId");
-    axios.get(`https://localhost:7180/GetAllEntityForSpecificUser/${id}`).then((response) => {
+  // Create a filename by concatenating the name and extension
+  let fileName = name + "." + extension;
+
+  // Display the filename in an alert
+  alert(fileName);
+
+  // Send a GET request to the server to download the image
+  axios
+    .get("http://localhost:7202/api/DownloadImage/" + fileName, {
+      responseType: "blob",
+    })
+    .then((response) => {
+      // If the server responds with the image data, create a download link and download the image
+      const url = URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", fileName);
+      document.body.appendChild(link);
+      link.click();
+    })
+    .catch((error) => {
+      // If there's an error, log the error to the console
+      console.log(error);
+    });
+}
 
 
-    if (response) {
-      setDataList(response.data);
-      console.log(response.data);
-    } else {
-      alert("data not recieved");
-    }
-  })
-  .catch((error) => {
-    alert(error);
-  });
-  }
-  function ImageDownload(name, extension) {
-    debugger;
+// Function to handle clicking the "Edit" button on a row of data
+function editClick(data) {
+  //debugger
 
-    let fileName = name + "." + extension;
-    alert(fileName);
+  // Update the state with the data for the row that was clicked
+  setEmployeeForm(data);
+  console.log(data);
+}
 
-    axios
-      .get("http://localhost:7202/api/DownloadImage/" + fileName, {
-        responseType: "blob",
-      })
-      .then((response) => {
-        const url = URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", fileName);
-        document.body.appendChild(link);
-        link.click();
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  }
 
-  function editClick(data) {
-    debugger
-    setEmployeeForm(data)
-    console.log(data)
-  }
-
-  const deleteData = {
-    name: "",
-    extension: "",
-    partitionKey: "",
-    rowKey: "",
-  };
 
   function removeImage(data) {
-    debugger;
-
-    axios
+    //debugger;
+    //localhost:7180/Delete/a/a/a/a
+    https: axios
       .delete(
-        `https://localhost:7180/Delete?name=${data.name}&extension=${data.extension}&partitionKey=${data.partitionKey}&rowKey=${data.rowKey}`
+        `https://localhost:7180/Delete/${data.name}/${data.extension}/${data.partitionKey}/${data.rowKey}`
       )
       .then((d) => {
         if (d) {
@@ -288,7 +262,7 @@ else{
   }
 
   function findImage(name, id) {
-    debugger;
+    // debugger;
     axios
       .get(`https://localhost:7180/getentityasync?fileName=${name}&id=${id}`)
       .then((d) => {
@@ -304,38 +278,33 @@ else{
       });
   }
 
-
-
   return (
     <div>
       <div style={{ color: "red", fontSize: "16px" }}>
         <h4>CRUD operations with Azure</h4>
       </div>
 
-
-        <h1 className="text-secondary text-center">Azure Data</h1>
-        <div className="row">
+      <h1 className="text-secondary text-center">Azure Data</h1>
+      <div className="row">
         <form>
           <div className="col-12">
             <div className=" ">
               <input
                 onChange={handleFileChange}
-                name="file"
                 className="btn btn-outline-primary m-2"
                 type="file"
               />
               <button
                 className="btn btn-outline-primary m-2"
-
                 onClick={uploadClick}
-
               >
                 UPLOAD
               </button>
 
-
-              <button className="btn btn-outline-primary m-2" onClick={gettSpecific}>
-
+              <button
+                className="btn btn-outline-primary m-2"
+                onClick={gettSpecific}
+              >
                 DISPLAY
               </button>
             </div>
@@ -351,6 +320,7 @@ else{
             <th>Extension</th>
             <th>Partitionkey</th>
             <th>RowKey</th>
+            <th>UserId</th>
             <th>DownLoad</th>
             <th>Actions</th>
           </tr>
@@ -363,6 +333,7 @@ else{
               <td>{data.extension}</td>
               <td>{data.partitionKey}</td>
               <td>{data.rowKey}</td>
+              <td>{data.userId}</td>
               <td>
                 <button
                   className="btn btn-outline-secondary m-1"
@@ -372,8 +343,14 @@ else{
                 </button>
               </td>
               <td>
-              <button onClick={()=>editClick(data)} className='btn btn-outline-secondary m-1' data-toggle="modal"
-                data-target="#myModal">Edit</button>
+                <button
+                  onClick={() => editClick(data)}
+                  className="btn btn-outline-secondary m-1"
+                  data-toggle="modal"
+                  data-target="#myModal"
+                >
+                  Edit
+                </button>
                 <button
                   className="btn btn-outline-secondary m-1"
                   onClick={() => removeImage(data)}
@@ -392,8 +369,8 @@ else{
         </tbody>
       </table>
 
-            {/*  Edit */}
-            <form>
+      {/*  Edit */}
+      <form>
         <div className="modal" id="myModal" role="dialog">
           <div className="modal-dialog">
             <div className="modal-content">
@@ -438,8 +415,7 @@ else{
                   </div>
 
                 </div> */}
-
-                </div>
+              </div>
 
               {/* Footer */}
               <div className="modal-footer bg-info">

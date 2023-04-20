@@ -55,8 +55,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 // Map a GET request to retrieve a single entity based on file name and ID
-app.MapGet("/getentityasync", async (string fileName, string id, ITableStorageRepository service) =>
+app.MapGet("/getentityasync/{fileName}/{id}", async (string fileName, string id, ITableStorageRepository service) =>
 {
     return Results.Ok(await service.GetEntityAsync(fileName, id));
 })
@@ -80,27 +81,25 @@ app.MapGet("GetAll", async (ITableStorageRepository service) =>
 
 
 
-//app.MapPut("/UpdateData", async (FileDataInfo data, ITableStorageRepository tableStorageRepository) =>
-//{
-//    var getMessage = await tableStorageRepository.UpsertEntityAsync(data);
-//    if (getMessage!=null) return Results.Ok(new { Staus = 1, Message = "Updated Successfully" });
-//    return Results.BadRequest(new { Staus = 0, Message = "Somehting went wrong" });
-
-//});
 // Map a POST request to upsert a new entity
-app.MapPost("/upsertentityasync", async (FileDataInfo entity, ITableStorageRepository service) =>
+//app.MapPost("/createEntity", async (FileDataInfo entity, ITableStorageRepository service) =>
+//{
+//    entity.PartitionKey = entity.Name;
+//    string Id = Guid.NewGuid().ToString();
+//    entity.Id = Id;
+//    entity.RowKey = Id;
+
+
+//    var createdEntity = await service.CreateEntityAsync(entity);
+//    return createdEntity;
+//})
+//    .WithName("PostData");
+
+app.MapPost("/createEntity", async (FileDataInfo data, ITableStorageRepository tableStorageRepository) =>
 {
-    entity.PartitionKey = entity.Name;
-    string Id = Guid.NewGuid().ToString();
-    entity.Id = Id;
-    entity.RowKey = Id;
 
-    
-    var createdEntity = await service.UpsertEntityAsync(entity);
-    return createdEntity;
-})
-    .WithName("PostData");
-
+    return Results.Ok(await tableStorageRepository.CreateEntityAsync(data));
+});
 
 //// Map a PUT request to update an existing entity
 app.MapPut("/updateentityasync", async (FileDataInfo entity, ITableStorageRepository service) =>
@@ -111,29 +110,19 @@ app.MapPut("/updateentityasync", async (FileDataInfo entity, ITableStorageReposi
     entity.UserId = entity.UserId;
 
     await service.UpsertEntityAsync(entity);
-    return Results.Ok();
+    return Results.Ok(new {data="working"});
 })
     .WithName("UpdateData");
 
 
 // Map a DELETE request to delete an entity based on name, extension, partition key, and row key
-app.MapDelete("/Delete", async (string name,string extension, string partitionKey, string rowKey, ITableStorageRepository tableStorageRepository) =>
+app.MapDelete("/Delete/{name}/{extension}/{partitionKey}/{rowKey}", async (string name,string extension, string partitionKey, string rowKey, ITableStorageRepository tableStorageRepository) =>
 {
     var getMessage = await tableStorageRepository.DeleteEntityAsync(name, extension, rowKey, partitionKey);
     if (getMessage) return Results.Ok(new { Staus = 1, Message = "Deleted Successfully" });
     return Results.BadRequest(new { Staus = 0, Message = "Somehting went wrong" });
 
 });
-
-//Authenticate user
-//app.MapPost("/AuthenticateUser", async (UserCredentials userCredentials, IAuthenticateRepository service) =>
-//{
-//    var rowKey=await service.AuthenticateUser(userCredentials.Username, userCredentials.Password);
-
-//    if (rowKey != null) return Results.Ok(new {username=userCredentials.Username, status = 1,message="User Logged In",rowKey= rowKey }) ;
-//    return Results.BadRequest(new { Staus = 0, Message = "Wrong Username/Password" });
-
-//});
 
 // login user here 
 app.MapGet("/login/{userName}/{password}", (string userName, string password, IAuthenticateRepository iautenticateRepository) =>
@@ -144,32 +133,9 @@ app.MapGet("/login/{userName}/{password}", (string userName, string password, IA
 });
 
 
-//GetAll Users from login Table
-//app.MapGet("/GetAllUsersFromLogin", async (IAuthenticateRepository service) =>
-//{
-//    var data = await service.GetAllUsers();
-
-//    return Results.Ok(await service.GetAllUsers());
-//});
-
-//Here i will get the userDetails who logged in by its id
-//app.MapGet("/GetAllEntityForSpecificUser", async (int id, ITableStorageRepository service) =>
-//{
-//    var getAllUserInfo=await service.GetAllEntityForSpecificUser(id);
-//    if (getAllUserInfo != null) return Results.Ok(getAllUserInfo);
-//    else return Results.BadRequest();
-//});
 
 app.UseHttpsRedirection();
 
-
-//Find record in Login Table
-app.MapGet("/getentityFromLogin", async (string username,string password, IAuthenticateRepository service) =>
-{
-    var userCredentials = await service.GetLoginEntityAsync(username, password);
-    return Results.Ok();
-});
-    
 
 //GetAll Users from login Table
 app.MapGet("/GetAllUsersFromLogin", async (IAuthenticateRepository service) =>
@@ -180,16 +146,14 @@ app.MapGet("/GetAllUsersFromLogin", async (IAuthenticateRepository service) =>
 });
 
 //Here i will get the userDetails who logged in by its id
-app.MapGet("/GetAllEntityForSpecificUser", async (int id, ITableStorageRepository service) =>
+app.MapGet("/q/{id}", async (int id, ITableStorageRepository service) =>
 {
     var getAllUserInfo=await service.GetAllEntityForSpecificUser(id);
     if (getAllUserInfo != null) return Results.Ok(getAllUserInfo);
     else return Results.BadRequest();
 });
-//app.UseHttpsRedirection();
 
 app.MapHub<MessageHub>("/getDataSignalR");
-//app.MapHub<MessageHub>("/updateentityasync");
 
 app.UseCors("MyPolicy");
 
