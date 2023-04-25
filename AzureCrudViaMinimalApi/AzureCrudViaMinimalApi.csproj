@@ -16,4 +16,6 @@
     <PackageReference Include="WindowsAzure.Storage" Version="9.3.3" />
   </ItemGroup>
 
+  <ProjectExtensions><VisualStudio><UserProperties properties_4launchsettings_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>
+
 </Project>

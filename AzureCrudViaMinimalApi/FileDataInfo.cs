@@ -12,6 +12,7 @@ namespace AzureCrudViaMinimalApi
         public string RowKey { get; set; }
         public DateTimeOffset? Timestamp { get; set ; }
         public int UserId { get; set ; }
+        public string? GetDataValue { get; set; }
         public ETag ETag { get ; set; }
     }
 }

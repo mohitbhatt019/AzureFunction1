@@ -9,18 +9,20 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Cosmos.Table;
 using Microsoft.OData.Edm;
 using Microsoft.WindowsAzure.Storage.Queue.Protocol;
-
+using Newtonsoft.Json;
 using System.Data.SqlTypes;
-
+using System.Text;
+using System.Text.Json;
+using System.Text.Unicode;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-//builder.Services.AddSignalR();
+builder.Services.AddSignalR();
 builder.Services.AddScoped<ITableStorageRepository, TableStorageRepository>();
 builder.Services.AddScoped<IAuthenticateRepository, AuthenticateRepository>();
-builder.Services.AddSignalR(options => { options.KeepAliveInterval = TimeSpan.FromSeconds(5); });
+//builder.Services.AddSignalR(options => { options.KeepAliveInterval = TimeSpan.FromSeconds(5); });
 
 //builder.Services.AddSignalR(options => { options.KeepAliveInterval = TimeSpan.FromSeconds(5); });
 
@@ -45,7 +47,10 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 app.UseRouting();
+app.UseCors("MyPolicy");
 app.UseAuthorization();
+app.MapHub<MessageHub>("/getDataSignalR");
+app.UseHttpsRedirection();
 
 
 
@@ -109,8 +114,8 @@ app.MapPut("/updateentityasync", async (FileDataInfo entity, ITableStorageReposi
 
     entity.UserId = entity.UserId;
 
-    await service.UpsertEntityAsync(entity);
-    return Results.Ok(new {data="working"});
+    var data=await service.UpsertEntityAsync(entity);
+    return Results.Ok("Data updated"); 
 })
     .WithName("UpdateData");
 
@@ -132,11 +137,6 @@ app.MapGet("/login/{userName}/{password}", (string userName, string password, IA
     return Results.BadRequest(new { Status = 0, Message = "login unsuccessfully" });
 });
 
-
-
-app.UseHttpsRedirection();
-
-
 //GetAll Users from login Table
 app.MapGet("/GetAllUsersFromLogin", async (IAuthenticateRepository service) =>
 {
@@ -152,13 +152,6 @@ app.MapGet("/q/{id}", async (int id, ITableStorageRepository service) =>
     if (getAllUserInfo != null) return Results.Ok(getAllUserInfo);
     else return Results.BadRequest();
 });
-
-app.MapHub<MessageHub>("/getDataSignalR");
-
-app.UseCors("MyPolicy");
-
-
-
 
 app.Run();
 

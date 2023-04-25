@@ -17,9 +17,9 @@ function Header() {
   }
   return (
     <div>
-      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <nav class="navbar navbar-expand-lg navbar-light bg-pink">
         <div class="container-fluid">
-          <Link to="/home" class="nav-link active" aria-current="page" href="#">
+          <Link to="/home" class="nav-link btn btn-outline-success my-2 my-sm-0 m-2" aria-current="page" href="#">
             Home
           </Link>
           <button

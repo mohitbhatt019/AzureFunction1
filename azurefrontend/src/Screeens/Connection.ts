@@ -5,4 +5,3 @@ const connection = new HubConnectionBuilder()
   .withAutomaticReconnect()
   .build();
 
-export default connection;

@@ -25,13 +25,8 @@ function Login() {
     axios.get(`https://localhost:7180/login/${formData.Username}/${formData.Password}`)
       .then((d) => {
         if (d) {
-          debugger
-          console.log(d.data);
-          console.log(d.data.data.userName);
-          console.log(d.data.data.id);
           localStorage.setItem("curruntUser", d.data.data.userName);
           localStorage.setItem("userId",d.data.data.id)
-
           navigate("/home");
           alert(d.data.message);
         } else {
