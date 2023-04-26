@@ -232,6 +232,7 @@ function Home() {
           )
           .then((d) => {
             if (d) {
+              if(d.data.status==-1) gettSpecific()
               //gettSpecific();
               toast.success("Data deleted");
             } else {

@@ -74,7 +74,7 @@ namespace AzureCrudViaMinimalApi.Repository
                     
                     if (getData.Count == 0)
                     {
-                        return getData;
+                        return null;
                     }
                     //SignalR Implemented
                     var objNotifHub = new MessageHub();

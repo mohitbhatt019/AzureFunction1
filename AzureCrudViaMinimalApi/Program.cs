@@ -124,7 +124,8 @@ app.MapPut("/updateentityasync", async (FileDataInfo entity, ITableStorageReposi
 app.MapDelete("/Delete/{name}/{extension}/{partitionKey}/{rowKey}", async (string name,string extension, string partitionKey, string rowKey, ITableStorageRepository tableStorageRepository) =>
 {
     var getMessage = await tableStorageRepository.DeleteEntityAsync(name, extension, rowKey, partitionKey);
-    if (getMessage) return Results.Ok(new { Staus = 1, Message = "Deleted Successfully" });
+    if (getMessage==null) return Results.Ok(new { status = -1 });
+    if(getMessage) return Results.Ok(new { Staus = 1, Message = "Deleted Successfully" });
     return Results.BadRequest(new { Staus = 0, Message = "Somehting went wrong" });
 
 });
